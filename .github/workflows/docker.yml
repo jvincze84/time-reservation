@@ -1,0 +1,25 @@
+# Build the Docker image (runtime stage) and push it to the private registry
+# and to Docker Hub:
+#   feature/<name> branch -> :feature-<name>, :feature-<name>-<sha7>
+#   tag v*                -> :<tag>
+# Repository secrets: REGISTRY_URL, REGISTRY_USERNAME, REGISTRY_PASSWORD,
+# DOCKERHUB_USERNAME, DOCKERHUB_TOKEN.
+name: Docker
+
+on:
+  push:
+    branches: ["feature/**"]
+    tags: ["v*"]
+
+jobs:
+  docker:
+    uses: jvincze84/reusable-workflows/.github/workflows/docker-build.yml@main
+    with:
+      image-name: time-reservation
+      dockerhub-readme: true
+    secrets:
+      REGISTRY_URL: ${{ secrets.REGISTRY_URL }}
+      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
