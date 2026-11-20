@@ -1,0 +1,13 @@
+# Csak az app/, a requirements.txt és a hashpw.py kell az image-be
+data/
+config/
+tests/
+.git
+.gitignore
+.gitattributes
+.claude/
+*.md
+docker-compose*.yml
+.env*
+__pycache__
+*.pyc

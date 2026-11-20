@@ -1,0 +1,5 @@
+# Egységes LF sorvégek (a shell szkriptek és a Docker build Windows-on klónozva is működjenek)
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ico binary

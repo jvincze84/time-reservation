@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Bejelentkezés') }} – {{ app_title }}{% endblock %}
+{% block content %}
+<div class="login-wrap">
+  <div class="card login-card">
+    <div class="login-logo">📅</div>
+    <h1>{{ app_title }}</h1>
+    <form method="post">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <label>{{ _('Felhasználónév') }}
+        <input name="username" autocomplete="username" autocapitalize="none" autocorrect="off" required autofocus>
+      </label>
+      <label>{{ _('Jelszó') }}
+        <input name="password" type="password" autocomplete="current-password" required>
+      </label>
+      <button class="btn btn-primary btn-block">{{ _('Belépés') }}</button>
+    </form>
+    <div class="login-lang">{% include "_langswitch.html" %}</div>
+  </div>
+</div>
+{% endblock %}

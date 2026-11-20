@@ -1,0 +1,5 @@
+[
+  { "username": "admin", "password": "valtoztasd-meg", "name": "Adminisztrátor", "admin": true },
+  { "username": "anna",  "password": "anna123",        "name": "Kiss Anna" },
+  { "username": "bela",  "password": "bela123",        "name": "Nagy Béla" }
+]

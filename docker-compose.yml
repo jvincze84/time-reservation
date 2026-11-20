@@ -1,0 +1,27 @@
+services:
+  reservation:
+    build: .
+    image: reservation:latest
+    container_name: reservation
+    restart: unless-stopped
+    ports:
+      - "8090:8000"
+    volumes:
+      - ./data:/data                 # SQLite adatbázis + session kulcs
+      - ./config:/config:ro          # users.json
+    environment:
+      APP_TITLE: "Timi Időpontfoglaló Szuper Alkalmazása "
+      APP_TZ: "Europe/Budapest"
+      DEFAULT_LANG: "hu"             # alapértelmezett nyelv: hu | en (a felületen átváltható)
+      DAY_START: "08:00"             # napi nyitás
+      DAY_END: "20:00"               # napi zárás
+      GRID_MINUTES: "30"             # időrács felbontása (15, 30, 60...)
+      MIN_BOOKING_MINUTES: "30"      # legrövidebb foglalás
+      MAX_BOOKING_MINUTES: "0"       # leghosszabb foglalás (0 = korlátlan)
+      BOOKING_DAYS_AHEAD: "60"       # max. ennyi napra előre lehet foglalni
+      REQUIRE_APPROVAL: "true"       # false = a foglalás azonnal jóváhagyott
+      MAX_ACTIVE_PER_USER: "0"       # 0 = korlátlan
+      LOG_RETENTION_DAYS: "365"      # napló megőrzése napokban (0 = örökre)
+      PROXY_COUNT: "0"               # reverse proxy mögött 1 (a valós kliens IP-hez a naplóban)
+      COOKIE_SECURE: "false"         # true, ha HTTPS reverse proxy mögött fut
+      # SECRET_KEY: "..."            # ha nincs megadva, generál egyet a /data-ba

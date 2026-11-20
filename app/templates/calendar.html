@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "_calnav.html" %}
+{% set single = days|length == 1 %}
+{% set is_admin = user.is_admin %}
+
+{% if strip %}
+<div class="weekstrip">
+  {% for w in strip %}
+  <a href="{{ url_for('day_view', day=w.date.isoformat()) }}"
+     class="wday {{ 'sel' if w.date == cur }} {{ 'today' if w.date == today }} {{ 'blk' if w.blocked }} {{ 'past' if w.date < today }}">
+    <small>{{ WEEKDAYS_SHORT[w.date.weekday()] }}</small><b>{{ w.date.day }}</b>
+  </a>
+  {% endfor %}
+</div>
+{% endif %}
+
+<p class="hint">
+  <span class="hint-mouse">{{ _('Jelölj ki egy időtartamot egérrel húzva, vagy kattints a kezdetre, majd Shift+kattints a végére.') }}</span>
+  <span class="hint-touch">{{ _('Koppints a kezdő, majd a záró időpontra – vagy nyomd hosszan, és húzd az ujjad.') }}</span>
+</p>
+
+<div class="tgrid {{ 'is-week' if not single else 'is-day' }}" id="tgrid"
+     style="--cell-h: {{ '%.1f' % (56 * GRID / 60 if GRID >= 15 else 14) }}px; --cols: {{ days|length }}"
+     data-grid="{{ GRID }}" data-min="{{ 0 if is_admin else MIN_BOOKING }}" data-max="{{ 0 if is_admin else MAX_BOOKING }}">
+  {% if not single %}
+  <div class="tg-head">
+    <div></div>
+    {% for day in days %}
+    <a href="{{ url_for('day_view', day=day.date.isoformat()) }}"
+       class="tg-dh {{ 'today' if day.date == today }} {{ 'past' if day.date < today }} {{ 'blk' if day.full_block }}">
+      <small>{{ WEEKDAYS_SHORT[day.date.weekday()] }}</small><b>{{ day.date.day }}</b>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+  <div class="tg-body">
+    <div class="tg-axis">
+      {% for c in days[0].cells %}<div class="ax">{% if c.hour %}<span>{{ c.start }}</span>{% endif %}</div>{% endfor %}
+    </div>
+    {% for day in days %}
+    <div class="tg-col {{ 'is-today' if day.date == today }}" data-day="{{ day.date.isoformat() }}"
+         data-label="{{ fmt_date_long(day.date) }}">
+      {% for c in day.cells %}<div class="cell c-{{ c.state }}{{ ' hr' if c.hour }}" data-i="{{ loop.index0 }}" data-s="{{ c.state }}" data-a="{{ c.start }}" data-b="{{ c.end }}"></div>{% endfor %}
+      {% for x in day.blocks %}
+      <button type="button" class="ov ov-block" style="top: calc({{ x.top }} * var(--cell-h)); height: calc({{ x.height }} * var(--cell-h))"
+        data-kind="block" data-text="{{ x.text }}" data-reason="{{ x.reason or '' }}" data-series="{{ 1 if x.series else '' }}"
+        data-del="{{ url_for('admin_rule_delete', rid=x.id) if is_admin else '' }}"><span>{{ x.reason or _('Tiltva') }}</span></button>
+      {% endfor %}
+      {% for b in day.bookings %}
+      <button type="button" class="ov ov-bk st-{{ b.status }}{{ ' mine' if b.mine }}" style="top: calc({{ b.top }} * var(--cell-h)); height: calc({{ b.height }} * var(--cell-h))"
+        data-kind="booking" data-title="{{ b.label }}" data-time="{{ b.start }}–{{ b.end }}" data-day="{{ fmt_date_long(day.date) }}"
+        data-status="{{ b.status }}" data-status-label="{{ STATUS_LABELS[b.status] }}" data-note="{{ b.note or '' }}"
+        data-cancel="{{ url_for('cancel_booking', bid=b.id) if b.can_cancel else '' }}"
+        data-approve="{{ url_for('admin_decide', bid=b.id, action='approve') if b.can_decide else '' }}"
+        data-reject="{{ url_for('admin_decide', bid=b.id, action='reject') if b.can_decide else '' }}">
+        <b>{{ b.label }}</b><small>{{ b.start }}–{{ b.end }}</small>
+      </button>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% include "_legend.html" %}
+
+{% if single and is_admin and not days[0].full_block %}
+<form method="post" action="{{ url_for('admin_quick_block') }}" class="card admin-dayblock">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <input type="hidden" name="day" value="{{ days[0].date.isoformat() }}">
+  <input type="hidden" name="next" value="{{ request.path }}">
+  <input name="reason" maxlength="200" placeholder="{{ _('Indok (opcionális)') }}">
+  <button class="btn btn-danger" data-confirm="{{ _('Az egész napot letiltod?') }}">⛔ {{ _('Egész nap tiltása') }}</button>
+</form>
+{% endif %}
+
+{# ---------- Kijelölés panel ---------- #}
+<div class="sheet" id="selSheet" hidden>
+  <div class="sheet-card">
+    <div class="sheet-head">
+      <div><b id="selTime"></b> <span class="muted" id="selDur"></span><div class="muted" id="selDay"></div></div>
+      <button type="button" class="btn-x" data-close aria-label="{{ _('Bezárás') }}">✕</button>
+    </div>
+    <div id="selWarn" class="warn-text" hidden></div>
+    <form method="post" action="{{ url_for('book') }}" class="sheet-form" id="bookForm">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="day"><input type="hidden" name="start"><input type="hidden" name="end">
+      <input type="hidden" name="next" value="{{ request.path }}">
+      <input name="note" maxlength="200" placeholder="{{ _('Megjegyzés (opcionális)') }}">
+      <button class="btn btn-primary" id="bookBtn">{{ _('Foglalás') }}</button>
+    </form>
+    {% if is_admin %}
+    <form method="post" action="{{ url_for('admin_quick_block') }}" class="sheet-form" id="blockForm">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="day"><input type="hidden" name="start"><input type="hidden" name="end">
+      <input type="hidden" name="next" value="{{ request.path }}">
+      <input name="reason" maxlength="200" placeholder="{{ _('Tiltás indoka (opcionális)') }}">
+      <button class="btn btn-danger">⛔ {{ _('Tiltás') }}</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+{# ---------- Részletek panel (foglalás / tiltás) ---------- #}
+<div class="sheet" id="infoSheet" hidden>
+  <div class="sheet-card">
+    <div class="sheet-head">
+      <div><b id="infoTitle"></b> <span id="infoPill" class="pill"></span><div class="muted" id="infoSub"></div></div>
+      <button type="button" class="btn-x" data-close aria-label="{{ _('Bezárás') }}">✕</button>
+    </div>
+    <div id="infoNote" class="muted"></div>
+    <div class="btn-group sheet-actions">
+      {% for id, cls, label, confirm in [
+          ('fApprove', 'btn-ok', '✓ ' ~ _('Jóváhagy'), ''),
+          ('fReject', 'btn-danger', '✕ ' ~ _('Elutasít'), ''),
+          ('fCancel', 'btn-ghost', _('Lemondás'), _('Biztosan lemondod / törlöd ezt a foglalást?')),
+          ('fDelRule', 'btn-ghost', _('Tiltás törlése'), '')] %}
+      <form method="post" id="{{ id }}" hidden>
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <input type="hidden" name="next" value="{{ request.path }}">
+        <button class="btn {{ cls }}"{% if confirm %} data-confirm="{{ confirm }}"{% endif %}>{{ label }}</button>
+      </form>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}<script>window.I18N = {{ js_i18n()|tojson }};</script>
+<script src="{{ url_for('static', filename='calendar.js') }}"></script>{% endblock %}

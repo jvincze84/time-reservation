@@ -1,0 +1,37 @@
+# --- Futásidejű adatok (SOHA ne kerüljenek a repóba) ---
+# SQLite adatbázis, session-kulcs, mentések – a mappa maga megmarad (.gitkeep),
+# hogy klónozás után ne a Docker hozza létre root tulajdonnal
+data/*
+!data/.gitkeep
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# Felhasználók és jelszavak – csak a minta kerül a repóba
+config/users.json
+
+# Környezeti változók / titkok (ha valaki .env-et használ a compose-hoz)
+.env
+.env.*
+!.env.example
+docker-compose.override.yml
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# --- Szerkesztők, OS ---
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# --- Claude Code: személyes, gépfüggő beállítások ---
+.claude/settings.local.json

@@ -1,0 +1,15 @@
+<div class="calnav">
+  <div class="calnav-top">
+    <div class="tabs" role="tablist">
+      {% for key, label, url in tabs %}<a href="{{ url }}" class="{{ 'active' if key == view }}">{{ label }}</a>{% endfor %}
+    </div>
+    <a class="btn btn-small btn-ghost" href="{{ today_url }}">{{ _('Ma') }}</a>
+    <input class="datejump" type="date" value="{{ cur.isoformat() }}" aria-label="{{ _('Ugrás dátumra') }}"
+      onchange="if(this.value)location.href='{{ url_for('index') }}{{ view }}/'+{{ 'this.value.slice(0,7)' if view == 'month' else 'this.value' }}">
+  </div>
+  <div class="calnav-row">
+    <a class="btn btn-ghost navbtn" href="{{ prev_url }}" aria-label="{{ _('Előző') }}">‹</a>
+    <h2>{{ title }}</h2>
+    <a class="btn btn-ghost navbtn" href="{{ next_url }}" aria-label="{{ _('Következő') }}">›</a>
+  </div>
+</div>

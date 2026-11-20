@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>{% block title %}{{ app_title }}{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>">
+</head>
+<body>
+{% if user %}
+<header class="topbar">
+  <a class="brand" href="{{ url_for('index') }}">📅 {{ app_title }}</a>
+  <nav class="topnav">
+    <a href="{{ url_for('index') }}" class="{{ 'active' if request.endpoint in ('day_view', 'week_view', 'month_view') }}">{{ _('Naptár') }}</a>
+    <a href="{{ url_for('my_bookings') }}" class="{{ 'active' if request.endpoint == 'my_bookings' }}">{{ _('Foglalásaim') }}</a>
+    {% if user.is_admin %}
+    <a href="{{ url_for('admin') }}" class="{{ 'active' if request.endpoint == 'admin' }}">{{ _('Admin') }}{% if pending_count %} <span class="badge">{{ pending_count }}</span>{% endif %}</a>
+    <a href="{{ url_for('admin_rules') }}" class="{{ 'active' if request.endpoint == 'admin_rules' }}">{{ _('Tiltások') }}</a>
+    <a href="{{ url_for('admin_log') }}" class="{{ 'active' if request.endpoint == 'admin_log' }}">{{ _('Napló') }}</a>
+    {% endif %}
+  </nav>
+  <form method="post" action="{{ url_for('logout') }}" class="logout">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    {% include "_langswitch.html" %}
+    <span class="whoami">{{ user.display_name }}</span>
+    <button class="btn-link" title="{{ _('Kijelentkezés') }}">{{ _('Kilépés') }}</button>
+  </form>
+</header>
+{% endif %}
+
+<main class="container">
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, m in msgs %}<div class="flash flash-{{ cat }}">{{ m }}</div>{% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+{% block scripts %}{% endblock %}
+<script>
+// Megerősítés kérése a data-confirm attribútummal jelölt gomboknál (a szöveg a sablonban fordítva)
+document.addEventListener('click', function (e) {
+  var el = e.target.closest('[data-confirm]');
+  if (el && !confirm(el.dataset.confirm)) { e.preventDefault(); e.stopPropagation(); }
+}, true);
+</script>
+
+{% if user %}
+<nav class="bottomnav">
+  <a href="{{ url_for('index') }}" class="{{ 'active' if request.endpoint in ('day_view', 'week_view', 'month_view') }}"><span>📅</span>{{ _('Naptár') }}</a>
+  <a href="{{ url_for('my_bookings') }}" class="{{ 'active' if request.endpoint == 'my_bookings' }}"><span>🗂️</span>{{ _('Foglalásaim') }}</a>
+  {% if user.is_admin %}
+  <a href="{{ url_for('admin') }}" class="{{ 'active' if request.endpoint == 'admin' }}"><span>✅</span>{{ _('Admin') }}{% if pending_count %}<i class="dot">{{ pending_count }}</i>{% endif %}</a>
+  <a href="{{ url_for('admin_rules') }}" class="{{ 'active' if request.endpoint == 'admin_rules' }}"><span>⛔</span>{{ _('Tiltások') }}</a>
+  <a href="{{ url_for('admin_log') }}" class="{{ 'active' if request.endpoint == 'admin_log' }}"><span>📜</span>{{ _('Napló') }}</a>
+  {% endif %}
+</nav>
+{% endif %}
+</body>
+</html>

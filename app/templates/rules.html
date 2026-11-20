@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Tiltások') }} – {{ app_title }}{% endblock %}
+{% block content %}
+<h2>{{ _('Új tiltás') }}</h2>
+<form method="post" class="card ruleform">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+
+  <fieldset>
+    <legend>{{ _('Mely napokon?') }} <small class="muted">({{ _('üresen hagyva: minden nap a megadott időszakban') }})</small></legend>
+    <div class="chips">
+      {% for i in range(7) %}
+      <label class="chip">
+        <input type="checkbox" name="weekdays" value="{{ i }}" {{ 'checked' if form.getlist and (i|string) in form.getlist('weekdays') }}>
+        <span>{{ WEEKDAYS_SHORT[i] }}</span>
+      </label>
+      {% endfor %}
+    </div>
+    <div class="quickpicks">
+      <button type="button" class="btn-link" onclick="pick([5,6])">{{ _('Hétvége') }}</button>
+      <button type="button" class="btn-link" onclick="pick([0,1,2,3,4])">{{ _('Hétköznapok') }}</button>
+      <button type="button" class="btn-link" onclick="pick([])">{{ _('Törlés') }}</button>
+    </div>
+  </fieldset>
+
+  <fieldset class="grid2">
+    <legend>{{ _('Időszak') }} <small class="muted">({{ _('üresen hagyva: határozatlan ideig') }})</small></legend>
+    <label>{{ _('Ettől') }}<input type="date" name="date_from" value="{{ form.date_from or '' }}"></label>
+    <label>{{ _('Eddig') }}<input type="date" name="date_to" value="{{ form.date_to or '' }}"></label>
+  </fieldset>
+
+  <fieldset>
+    <legend>{{ _('Napszak') }}</legend>
+    <label class="check"><input type="checkbox" name="whole_day" value="1" id="wholeday"
+      {{ 'checked' if not form or form.whole_day }} onchange="toggleTimes()"> {{ _('Egész nap') }}</label>
+    <div class="grid2" id="times">
+      <label>{{ _('Kezdete') }}<input type="time" name="time_from" value="{{ form.time_from or '' }}" step="300"></label>
+      <label>{{ _('Vége') }}<input type="time" name="time_to" value="{{ form.time_to or '' }}" step="300"></label>
+    </div>
+  </fieldset>
+
+  <label>{{ _('Indok (opcionális, a felhasználók is látják)') }}
+    <input name="reason" maxlength="200" value="{{ form.reason or '' }}" placeholder="{{ _('pl. Zárva, szabadság, karbantartás') }}">
+  </label>
+
+  <button class="btn btn-danger btn-block">⛔ {{ _('Tiltás mentése') }}</button>
+</form>
+
+<h2>{{ _('Aktív tiltások') }} ({{ rules|length }})</h2>
+{% if not rules %}<p class="muted card">{{ _('Nincs tiltás.') }}</p>{% endif %}
+<ul class="list">
+  {% for r in rules %}
+  <li class="card row">
+    <div>
+      <b>{{ r.text }}</b>
+      {% if r.reason %}<div class="muted">{{ r.reason }}</div>{% endif %}
+    </div>
+    <form method="post" action="{{ url_for('admin_rule_delete', rid=r.id) }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <button class="btn btn-ghost btn-small" data-confirm="{{ _('Törlöd a tiltást?') }}">{{ _('Törlés') }}</button>
+    </form>
+  </li>
+  {% endfor %}
+</ul>
+
+<script>
+function pick(days){document.querySelectorAll('input[name=weekdays]').forEach(c=>c.checked=days.includes(+c.value));}
+function toggleTimes(){document.getElementById('times').style.display=document.getElementById('wholeday').checked?'none':'';}
+toggleTimes();
+</script>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Napló') }} – {{ app_title }}{% endblock %}
+{% block content %}
+<h2>{{ _('Napló') }} <span class="muted">({{ total }})</span></h2>
+
+<form method="get" class="card log-filter">
+  <label>{{ _('Felhasználó') }}
+    <select name="user" onchange="this.form.submit()">
+      <option value="">{{ _('Mindenki') }}</option>
+      {% for u in users %}
+      <option value="{{ u.id }}" {{ 'selected' if f_user == u.id|string }}>{{ u.display_name }}{% if not u.active %} ({{ _('inaktív') }}){% endif %}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>{{ _('Művelet') }}
+    <select name="action" onchange="this.form.submit()">
+      <option value="">{{ _('Mind') }}</option>
+      {% for key, label in actions.items() %}
+      <option value="{{ key }}" {{ 'selected' if f_action == key }}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <noscript><button class="btn btn-primary">{{ _('Szűrés') }}</button></noscript>
+  {% if f_user or f_action %}<a class="btn btn-ghost" href="{{ url_for('admin_log') }}">{{ _('Szűrés törlése') }}</a>{% endif %}
+</form>
+
+{% if not entries %}<p class="muted card">{{ _('Nincs bejegyzés.') }}</p>{% endif %}
+<ul class="list log">
+  {% set ns = namespace(last='') %}
+  {% for e in entries %}
+  {% if e.date != ns.last %}<li class="log-day">{{ e.date }}</li>{% set ns.last = e.date %}{% endif %}
+  <li class="card log-row act-{{ e.action }}">
+    <span class="log-time">{{ e.time }}</span>
+    <div class="log-main">
+      <div><b>{{ e.username or _('Ismeretlen') }}</b> <span class="pill log-pill">{{ e.label }}</span></div>
+      {% if e.details %}<div class="log-details">{{ e.details }}</div>{% endif %}
+    </div>
+    {% if e.ip %}<span class="log-ip muted">{{ e.ip }}</span>{% endif %}
+  </li>
+  {% endfor %}
+</ul>
+
+{% if pages > 1 %}
+<nav class="pager">
+  {% if page > 1 %}<a class="btn btn-ghost btn-small" href="{{ page_url(page - 1) }}">‹ {{ _('Újabbak') }}</a>{% else %}<span></span>{% endif %}
+  <span class="muted">{{ page }} / {{ pages }}</span>
+  {% if page < pages %}<a class="btn btn-ghost btn-small" href="{{ page_url(page + 1) }}">{{ _('Régebbiek') }} ›</a>{% else %}<span></span>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

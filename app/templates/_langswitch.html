@@ -1,0 +1,6 @@
+<span class="langswitch" role="group" aria-label="{{ _('Nyelv') }}">
+  {%- for code, name in LANGS.items() -%}
+  {%- if code == lang -%}<b title="{{ name }}">{{ code|upper }}</b>
+  {%- else -%}<a href="{{ url_for('set_lang', code=code, next=request.full_path) }}" title="{{ name }}" hreflang="{{ code }}">{{ code|upper }}</a>{%- endif -%}
+  {%- endfor -%}
+</span>

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "_calnav.html" %}
+<div class="month">
+  <div class="m-head">{% for s in WEEKDAYS_SHORT %}<div>{{ s }}</div>{% endfor %}</div>
+  {% for w in weeks %}
+  <div class="m-week">
+    {% for day in w %}
+    {% set vis = day.bookings if user.is_admin else (day.bookings|selectattr('mine')|list) %}
+    {% set busy = day.total - day.free %}
+    <a href="{{ url_for('day_view', day=day.date.isoformat()) }}"
+       class="m-day{{ ' out' if day.date.month != month.month }}{{ ' today' if day.date == today }}{{ ' past' if day.date < today }}{{ ' blk' if day.full_block }}"
+       title="{{ fmt_date(day.date) }}{% if day.date >= today and not day.full_block %} – {{ _('Szabad idősávok: {n}', n=day.free) }}{% endif %}">
+      <span class="m-num">{{ day.date.day }}</span>
+      {% if user.is_admin and day.pending %}<i class="m-pend" title="{{ _('Jóváhagyásra vár') }}">{{ day.pending }}</i>{% endif %}
+      <ul class="m-items">
+        {% for b in vis[:3] %}<li class="st-{{ b.status }}{{ ' mine' if b.mine }}">{{ b.start }} {{ b.label }}</li>{% endfor %}
+        {% if vis|length > 3 %}<li class="more">+{{ vis|length - 3 }}</li>{% endif %}
+      </ul>
+      <span class="m-dots">{% for b in day.bookings[:5] %}<i class="st-{{ b.status }}{{ ' mine' if b.mine }}"></i>{% endfor %}</span>
+      {% if day.date >= today and not day.full_block and day.total %}
+      <span class="m-bar"><i style="width: {{ (100 * busy / day.total)|round|int }}%"></i></span>
+      {% endif %}
+    </a>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</div>
+<p class="muted small">{{ _('A sáv a nap telítettségét mutatja (foglalt, tiltott vagy elmúlt idő). Koppints egy napra a részletekért.') }}</p>
+{% include "_legend.html" %}
+{% endblock %}

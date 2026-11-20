@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Foglalásaim') }} – {{ app_title }}{% endblock %}
+{% block content %}
+{% set all = scope == 'all' %}
+<div class="section-head">
+  <h2>{{ _('Minden foglalás') if all else _('Foglalásaim') }} <span class="muted">({{ total_all }})</span></h2>
+  {% if user.is_admin %}
+  <div class="tabs">
+    <a href="{{ page_url(1, scope=None) }}" class="{{ 'active' if not all }}">{{ _('Saját') }}</a>
+    <a href="{{ page_url(1, scope='all') }}" class="{{ 'active' if all }}">{{ _('Mindenki') }}</a>
+  </div>
+  {% endif %}
+</div>
+
+<div class="filter-chips">
+  <a href="{{ page_url(1, status=None) }}" class="fchip {{ 'active' if not f_status }}">{{ _('Mind') }} <span>{{ total_all }}</span></a>
+  {% for key, label, n in filters %}
+  <a href="{{ page_url(1, status=key) }}" class="fchip {{ 'active' if f_status == key }}">{{ label }} <span>{{ n }}</span></a>
+  {% endfor %}
+</div>
+
+{% if not items %}
+<p class="muted card">{{ _('Nincs ilyen foglalás.') }}{% if not all and not f_status %} <a href="{{ url_for('index') }}">{{ _('Foglalj most!') }}</a>{% endif %}</p>
+{% endif %}
+
+<ul class="list">
+  {% set ns = namespace(section=None) %}
+  {% for b in items %}
+  {% if b.upcoming != ns.section %}
+    {% set ns.section = b.upcoming %}
+    <li class="list-section">{{ _('Közelgő') if b.upcoming else _('Korábbi és lezárt') }}</li>
+  {% endif %}
+  <li class="card row {{ 'dim' if not b.upcoming }}">
+    <div>
+      {% if all %}<div class="owner">{{ b.display_name }}</div>{% endif %}
+      <a href="{{ url_for('day_view', day=b.day) }}"><b>{{ b.day|d }}</b></a>
+      <div>{{ b.start }}–{{ b.end }} <span class="pill pill-{{ b.status }}">{{ STATUS_LABELS[b.status] }}</span></div>
+      {% if b.note %}<div class="muted">{{ q(b.note) }}</div>{% endif %}
+    </div>
+    {% if b.can_cancel or b.can_decide %}
+    <div class="btn-group">
+      {% if b.can_decide %}
+      <form method="post" action="{{ url_for('admin_decide', bid=b.id, action='approve') }}">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <input type="hidden" name="next" value="{{ request.full_path }}">
+        <button class="btn btn-ok btn-small" title="{{ _('Jóváhagyás') }}">✓</button>
+      </form>
+      <form method="post" action="{{ url_for('admin_decide', bid=b.id, action='reject') }}">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <input type="hidden" name="next" value="{{ request.full_path }}">
+        <button class="btn btn-danger btn-small" title="{{ _('Elutasítás') }}">✕</button>
+      </form>
+      {% endif %}
+      {% if b.can_cancel %}
+      <form method="post" action="{{ url_for('cancel_booking', bid=b.id) }}">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <input type="hidden" name="next" value="{{ request.full_path }}">
+        <button class="btn btn-ghost btn-small" data-confirm="{{ _('Biztosan lemondod / törlöd ezt a foglalást?') }}">{{ _('Lemondás') }}</button>
+      </form>
+      {% endif %}
+    </div>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
+
+{% if pages > 1 %}
+<nav class="pager">
+  {% if page > 1 %}<a class="btn btn-ghost btn-small" href="{{ page_url(page - 1) }}">‹ {{ _('Előző') }}</a>{% else %}<span></span>{% endif %}
+  <span class="muted">{{ page }} / {{ pages }}</span>
+  {% if page < pages %}<a class="btn btn-ghost btn-small" href="{{ page_url(page + 1) }}">{{ _('Következő') }} ›</a>{% else %}<span></span>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}
