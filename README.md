@@ -9,6 +9,30 @@ Predefined users book time slots, an admin approves them and can block periods.
 
 ---
 
+## Screens
+
+<img width="1456" height="690" alt="opera_uZSIthVvND" src="https://github.com/user-attachments/assets/3348b3a2-2f7d-48f8-83c2-a287d1831bb4" />
+
+---
+
+<img width="869" height="518" alt="opera_rj8POhCNF9" src="https://github.com/user-attachments/assets/2650b9e9-24b7-4de3-bf65-54f134b110d1" />
+
+---
+
+<img width="961" height="945" alt="opera_XKef3XVQar" src="https://github.com/user-attachments/assets/10b755ac-7897-428e-8a63-05c2600ccf88" />
+
+---
+
+<img width="959" height="714" alt="opera_tung3kKcFJ" src="https://github.com/user-attachments/assets/35b72a9e-a396-4095-99c9-bbfd1f0cd759" />
+
+---
+
+<img width="888" height="984" alt="opera_VXibCIHDYj" src="https://github.com/user-attachments/assets/9969971b-333e-49e0-8850-0bfb8bcddc4c" />
+
+
+
+
+
 ## Features
 
 ### Everyone
